@@ -1,290 +1,80 @@
-# Quartz Community Plugin Template
+# @quartz-community/unlisted-pages
 
-Production-ready template for building, testing, and publishing Quartz community plugins. It mirrors
-Quartz's native plugin patterns and uses a factory-function API similar to Astro integrations:
-plugins are created by functions that return objects with `name` and lifecycle hooks.
+Zero-config transformer that bridges `frontmatter.unlisted` to `file.data.unlisted` so any page can opt out of discovery surfaces while remaining accessible by direct URL.
 
-## Highlights
+## What it does
 
-- ✅ Quartz-compatible transformer/filter/emitter examples
-- ✅ TypeScript-first with exported types for consumers
-- ✅ `tsup` bundling + declaration output
-- ✅ Vitest testing setup with example tests
-- ✅ Linting/formatting with ESLint + Prettier
-- ✅ CI workflow for checks and npm publishing
-- ✅ Demonstrates CSS/JS resource injection and remark/rehype usage
-
-## Getting started
-
-```bash
-npm install
-npm run build
-```
-
-## Usage in Quartz
-
-Install your plugin into a Quartz v5 site:
-
-```bash
-npx quartz plugin add github:quartz-community/plugin-template
-```
-
-Then register it in `quartz.config.ts`:
-
-```ts
-import * as ExternalPlugin from "./.quartz/plugins";
-
-export default {
-  configuration: {
-    pageTitle: "My Garden",
-  },
-  plugins: {
-    transformers: [ExternalPlugin.ExampleTransformer({ highlightToken: "==" })],
-    filters: [ExternalPlugin.ExampleFilter({ allowDrafts: false })],
-    emitters: [ExternalPlugin.ExampleEmitter({ manifestSlug: "plugin-manifest" })],
-  },
-  externalPlugins: ["github:quartz-community/plugin-template"],
-};
-```
-
-## Plugin factory pattern (Astro-style)
-
-Quartz plugins are factory functions that return an object with a `name` and hook implementations.
-This mirrors Astro's integration pattern (a function returning an object of hooks), which makes
-composition and configuration explicit and predictable.
-
-```ts
-import type { QuartzTransformerPlugin } from "@quartz-community/types";
-
-export const MyTransformer: QuartzTransformerPlugin<{ enabled: boolean }> = (opts) => {
-  return {
-    name: "MyTransformer",
-    markdownPlugins() {
-      return [];
-    },
-  };
-};
-```
-
-## Examples included
-
-### Transformer
-
-`ExampleTransformer` shows how to:
-
-- apply a custom remark plugin
-- run a rehype plugin
-- inject CSS/JS resources
-- perform a text transform hook
-
-```ts
-import { ExampleTransformer } from "@quartz-community/plugin-template";
-
-ExampleTransformer({
-  highlightToken: "==",
-  headingClass: "example-plugin-heading",
-  enableGfm: true,
-  addHeadingSlugs: true,
-});
-```
-
-The transformer uses a custom remark plugin to convert `==highlight==` into bold text and a rehype
-plugin to attach a class to all headings. It also injects a small inline CSS/JS snippet.
-
-### Filter
-
-`ExampleFilter` demonstrates frontmatter-driven filtering:
-
-```ts
-ExampleFilter({
-  allowDrafts: false,
-  excludeTags: ["private", "wip"],
-  excludePathPrefixes: ["_drafts/", "_private/"],
-});
-```
-
-### Emitter
-
-`ExampleEmitter` emits a JSON manifest of all pages:
-
-```ts
-ExampleEmitter({
-  manifestSlug: "plugin-manifest",
-  includeFrontmatter: true,
-  metadata: { project: "My Garden" },
-  transformManifest: (json) => json.replace("My Garden", "Quartz"),
-});
-```
-
-## API reference
-
-### `ExampleTransformer(options)`
-
-| Option            | Type      | Default                    | Description                   |
-| ----------------- | --------- | -------------------------- | ----------------------------- |
-| `highlightToken`  | `string`  | `"=="`                     | Token used to highlight text. |
-| `headingClass`    | `string`  | `"example-plugin-heading"` | Class added to headings.      |
-| `enableGfm`       | `boolean` | `true`                     | Enables `remark-gfm`.         |
-| `addHeadingSlugs` | `boolean` | `true`                     | Enables `rehype-slug`.        |
-
-### `ExampleFilter(options)`
-
-| Option                | Type       | Default                     | Description               |
-| --------------------- | ---------- | --------------------------- | ------------------------- |
-| `allowDrafts`         | `boolean`  | `false`                     | Publish draft pages.      |
-| `excludeTags`         | `string[]` | `["private"]`               | Tags to exclude.          |
-| `excludePathPrefixes` | `string[]` | `["_drafts/", "_private/"]` | Path prefixes to exclude. |
-
-### `ExampleEmitter(options)`
-
-| Option                | Type                       | Default                                   | Description                               |
-| --------------------- | -------------------------- | ----------------------------------------- | ----------------------------------------- |
-| `manifestSlug`        | `string`                   | `"plugin-manifest"`                       | Output filename (without extension).      |
-| `includeFrontmatter`  | `boolean`                  | `true`                                    | Include frontmatter in output.            |
-| `metadata`            | `Record<string, unknown>`  | `{ generator: "Quartz Plugin Template" }` | Extra metadata in manifest.               |
-| `transformManifest`   | `(json: string) => string` | `undefined`                               | Custom transformer for emitted JSON.      |
-| `manifestScriptClass` | `string`                   | `undefined`                               | Optional CSS class if rendered into HTML. |
-
-## Testing
-
-```bash
-npm test
-```
-
-## Build and lint
-
-```bash
-npm run build
-npm run lint
-npm run format
-```
-
-## Publishing
-
-Tags matching `v*` trigger the GitHub Actions publish workflow. Ensure `NPM_TOKEN` is set in the
-repository secrets.
-
-## Component Plugins (UI Components)
-
-In addition to transformer/filter/emitter plugins, you can create **component plugins** that provide
-UI elements for Quartz layouts. See `src/components/ExampleComponent.tsx` for a reference.
-
-### Component Pattern
-
-```tsx
-import type { QuartzComponent, QuartzComponentConstructor } from "@quartz-community/types";
-import style from "./styles/example.scss";
-import script from "./scripts/example.inline.ts";
-
-export default ((opts?: MyComponentOptions) => {
-  const Component: QuartzComponent = (props) => {
-    return <div class="my-component">...</div>;
-  };
-
-  Component.css = style;
-  Component.afterDOMLoaded = script;
-
-  return Component;
-}) satisfies QuartzComponentConstructor;
-```
-
-### Receiving YAML Options in Component-Only Plugins
-
-Processing plugins (transformers, filters, emitters, page types) receive options automatically
-through their factory function. **Component-only plugins** (those with `"category": ["component"]`)
-are loaded via side-effect import and need an extra step to receive YAML options.
-
-Export an `init` function from your plugin's entry point. Quartz's config-loader will call it with
-the merged options from `package.json` `defaultOptions` and the user's `quartz.config.yaml`:
-
-```ts
-// src/index.ts
-export function init(options?: Record<string, unknown>): void {
-  // Use the options to configure your plugin
-  const myOption = (options?.myOption as boolean) ?? false;
-  // e.g. register a view, set global state, etc.
-}
-```
-
-Then declare default values in your `package.json` manifest:
-
-```json
-{
-  "quartz": {
-    "category": ["component"],
-    "defaultOptions": {
-      "myOption": false
-    }
-  }
-}
-```
-
-Users configure options in `quartz.config.yaml`:
+Quartz v5 plugins that respect the `file.data.unlisted` convention — `content-index`, `search`, `backlinks`, `recent-notes`, `folder-page`, and `tag-page` — will hide a page from their output when `file.data.unlisted === true`. But nothing in the core pipeline copies `frontmatter.unlisted` onto `file.data.unlisted`, so a user writing:
 
 ```yaml
-plugins:
-  - source: github:your-username/my-component-plugin
-    enabled: true
-    options:
-      myOption: true
+---
+title: My Draft
+unlisted: true
+---
 ```
 
-Quartz merges `defaultOptions` with the user's `options` (user values take precedence) and passes
-the result to `init()`. If no `init` export exists, the plugin is loaded via side-effect import as
-before — no breaking change for existing plugins.
+gets no effect. This plugin fixes that. It is a trivially small rehype plugin that does one thing: if `frontmatter.unlisted` is a boolean, copy it to `file.data.unlisted`.
 
-### Client-Side Scripts
+## Installation
 
-Component scripts run in the browser and must handle Quartz's SPA navigation. Key patterns:
-
-1. **Use `@ts-nocheck`** - Client scripts run in a different context than build-time code
-2. **Listen to `nav` event** - Fires after each page navigation (including initial load)
-3. **Listen to `prenav` event** - Fires before navigation, use for saving state
-4. **Use `window.addCleanup()`** - Register cleanup functions for event listeners
-5. **Use `fetchData` global** - Access page metadata via the `fetchData` promise (handles base path correctly)
-
-See `src/components/scripts/example.inline.ts` for a complete example with all patterns.
-
-### Common Helper Functions
-
-These utilities are commonly needed in component plugins:
-
-```js
-function removeAllChildren(element) {
-  while (element.firstChild) element.removeChild(element.firstChild);
-}
-
-function simplifySlug(slug) {
-  return slug.endsWith("/index") ? slug.slice(0, -6) : slug;
-}
-
-function getCurrentSlug() {
-  let slug = window.location.pathname;
-  if (slug.startsWith("/")) slug = slug.slice(1);
-  if (slug.endsWith("/")) slug = slug.slice(0, -1);
-  return slug || "index";
-}
+```bash
+npx quartz plugin add github:quartz-community/unlisted-pages
 ```
 
-### State Persistence
+## Usage
 
-Use `localStorage` for persistent state (survives browser close) and `sessionStorage` for
-temporary state (like scroll positions):
+Add an `unlisted` field to any page's frontmatter:
 
-```js
-localStorage.setItem("myPlugin-state", JSON.stringify(state));
-sessionStorage.setItem("myPlugin-scrollTop", element.scrollTop.toString());
+```yaml
+---
+title: My Draft
+unlisted: true
+---
 ```
 
-## Migration Guide (from Quartz v4)
+When registered, this plugin marks the page as unlisted. Every Quartz v5 plugin that respects the convention will then hide it:
 
-When migrating a v4 component to a standalone plugin:
+- **Absent from** `contentIndex.json`, `sitemap.xml`, the RSS feed, backlinks, recent notes, folder listings, tag listings, graph, explorer, and search.
+- **Still emitted** as HTML, so the page remains accessible by direct URL.
 
-1. **Replace Quartz imports** with `@quartz-community/types`
-2. **Copy utility functions** (path helpers, DOM utils) into your plugin
-3. **Use `@ts-nocheck`** for inline scripts that can't be type-checked
-4. **Use the `fetchData` global** to access `contentIndex.json` with the correct base path
-5. **Test with both local and production builds**
+## Configuration
+
+Zero options. Just enable it.
+
+```yaml title="quartz.config.yaml"
+- source: github:quartz-community/unlisted-pages
+  enabled: true
+```
+
+## Interaction with `@quartz-community/encrypted-pages`
+
+The `encrypted-pages` plugin also sets `file.data.unlisted` when `unlistWhenEncrypted: true` or when per-page frontmatter specifies `unlisted: true`. The two plugins compose cleanly:
+
+- If you install only `unlisted-pages`: any page with `unlisted: true` in frontmatter is hidden from listing surfaces. Encryption is independent.
+- If you install only `encrypted-pages`: `unlisted: true` only works on pages that are ALSO encrypted (have a password). Non-encrypted pages with `unlisted: true` are silently ignored.
+- If you install both: `unlisted: true` works for every page, encrypted or not. This is the recommended setup for sites that use encrypted pages.
+
+## How `unlisted` works across consumer plugins
+
+| Plugin          | Behavior when `file.data.unlisted === true`                                |
+| --------------- | -------------------------------------------------------------------------- |
+| `content-index` | Page absent from `contentIndex.json`, `sitemap.xml`, and the RSS feed.     |
+| `search`        | Page absent from search results (derived from `contentIndex.json`).        |
+| `graph`         | Page absent from graph nodes and edges (derived from `contentIndex.json`). |
+| `explorer`      | Page absent from the sidebar file tree (derived from `contentIndex.json`). |
+| `backlinks`     | Page never appears as a backlink source on other pages.                    |
+| `recent-notes`  | Page absent from the recent notes list.                                    |
+| `folder-page`   | Page absent from folder listings and folder discovery.                     |
+| `tag-page`      | Page absent from tag listings and tag discovery.                           |
+
+In every case, the page's HTML is still emitted and accessible by direct URL.
+
+## API
+
+- Category: Transformer
+- Function name: `UnlistedPages()`
+- Source: [`quartz-community/unlisted-pages`](https://github.com/quartz-community/unlisted-pages)
+- Install: `npx quartz plugin add github:quartz-community/unlisted-pages`
 
 ## License
 

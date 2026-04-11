@@ -9,4 +9,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial Quartz community plugin template.
+- Initial release.
+- `UnlistedPages` transformer: zero-config rehype plugin that copies `file.data.frontmatter.unlisted` to `file.data.unlisted` when it is a boolean. Enables the `file.data.unlisted` convention respected by `content-index`, `search`, `backlinks`, `recent-notes`, `folder-page`, and `tag-page` to work for any page, not only encrypted ones.

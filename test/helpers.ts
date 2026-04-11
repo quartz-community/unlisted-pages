@@ -1,12 +1,9 @@
 import type {
   BuildCtx,
-  FilePath,
-  FullSlug,
-  QuartzConfig,
   ProcessedContent,
+  QuartzConfig,
   QuartzPluginData,
 } from "@quartz-community/types";
-import { isFilePath, isFullSlug } from "@quartz-community/utils";
 import { VFile } from "vfile";
 
 type BuildCtxOverrides = Omit<Partial<BuildCtx>, "argv"> & {
@@ -41,18 +38,4 @@ export const createProcessedContent = (data: Partial<QuartzPluginData> = {}): Pr
   const vfile = new VFile("");
   vfile.data = data;
   return [{ type: "root", children: [] }, vfile];
-};
-
-export const assertFilePath = (value: string): FilePath => {
-  if (!isFilePath(value)) {
-    throw new Error(`Invalid FilePath: ${value}`);
-  }
-  return value;
-};
-
-export const assertFullSlug = (value: string): FullSlug => {
-  if (!isFullSlug(value)) {
-    throw new Error(`Invalid FullSlug: ${value}`);
-  }
-  return value;
 };
