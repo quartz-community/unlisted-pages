@@ -50,13 +50,9 @@
     "check": "npm run typecheck && npm run lint && npm run format && npm run test"
   },
   "peerDependencies": {
-    "@jackyzha0/quartz": "^4.5.2",
     "vfile": "^6.0.3"
   },
   "peerDependenciesMeta": {
-    "@jackyzha0/quartz": {
-      "optional": true
-    },
     "vfile": {
       "optional": true
     }
