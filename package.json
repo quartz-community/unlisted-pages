@@ -83,7 +83,7 @@
     "displayName": "Unlisted Pages",
     "category": "transformer",
     "version": "1.0.0",
-    "quartzVersion": ">=5.0.0",
+    "quartzVersion": ">=5.1.0",
     "dependencies": [],
     "defaultOrder": 45,
     "defaultEnabled": true,
