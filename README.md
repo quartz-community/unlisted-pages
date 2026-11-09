@@ -4,7 +4,7 @@ Zero-config transformer that bridges `frontmatter.unlisted` to `file.data.unlist
 
 ## What it does
 
-Quartz v5 plugins that respect the `file.data.unlisted` convention — `content-index`, `search`, `backlinks`, `recent-notes`, `folder-page`, and `tag-page` — will hide a page from their output when `file.data.unlisted === true`. But nothing in the core pipeline copies `frontmatter.unlisted` onto `file.data.unlisted`, so a user writing:
+Quartz v5 plugins that respect the `file.data.unlisted` convention — Quartz's built-in content index, `search`, `backlinks`, `recent-notes`, `folder-page`, and `tag-page` — will hide a page from their output when `file.data.unlisted === true`. But nothing in the core pipeline copies `frontmatter.unlisted` onto `file.data.unlisted`, so a user writing:
 
 ```yaml
 ---
@@ -15,11 +15,15 @@ unlisted: true
 
 gets no effect. This plugin fixes that. It is a trivially small rehype plugin that does one thing: if `frontmatter.unlisted` is a boolean, copy it to `file.data.unlisted`.
 
+With Quartz 5.1 it also runs on pages rendered from files that have frontmatter (through `virtualPageHtmlPlugins`), such as Excalidraw drawings stored as Markdown (`.excalidraw.md`): `unlisted: true` there unlists the drawing like a note.
+
 ## Installation
 
 ```bash
-npx quartz plugin add github:quartz-community/unlisted-pages
+npx quartz plugin add @quartz-community/unlisted-pages
 ```
+
+It is already in Quartz's default configuration.
 
 ## Usage
 
@@ -42,8 +46,9 @@ When registered, this plugin marks the page as unlisted. Every Quartz v5 plugin 
 Zero options. Just enable it.
 
 ```yaml title="quartz.config.yaml"
-- source: github:quartz-community/unlisted-pages
+- source: "@quartz-community/unlisted-pages"
   enabled: true
+  order: 45
 ```
 
 ## Interaction with `@quartz-community/encrypted-pages`
@@ -56,25 +61,26 @@ The `encrypted-pages` plugin also sets `file.data.unlisted` when `unlistWhenEncr
 
 ## How `unlisted` works across consumer plugins
 
-| Plugin          | Behavior when `file.data.unlisted === true`                                |
-| --------------- | -------------------------------------------------------------------------- |
-| `content-index` | Page absent from `contentIndex.json`, `sitemap.xml`, and the RSS feed.     |
-| `search`        | Page absent from search results (derived from `contentIndex.json`).        |
-| `graph`         | Page absent from graph nodes and edges (derived from `contentIndex.json`). |
-| `explorer`      | Page absent from the sidebar file tree (derived from `contentIndex.json`). |
-| `backlinks`     | Page never appears as a backlink source on other pages.                    |
-| `recent-notes`  | Page absent from the recent notes list.                                    |
-| `folder-page`   | Page absent from folder listings and folder discovery.                     |
-| `tag-page`      | Page absent from tag listings and tag discovery.                           |
+| Plugin                            | Behavior when `file.data.unlisted === true`                                |
+| --------------------------------- | -------------------------------------------------------------------------- |
+| Content index (built into Quartz) | Page absent from `contentIndex.json`, `sitemap.xml`, and the RSS feed.     |
+| `search`                          | Page absent from search results (derived from `contentIndex.json`).        |
+| `graph`                           | Page absent from graph nodes and edges (derived from `contentIndex.json`). |
+| `explorer`                        | Page absent from the sidebar file tree (derived from `contentIndex.json`). |
+| `backlinks`                       | Page never appears as a backlink source on other pages.                    |
+| `recent-notes`                    | Page absent from the recent notes list.                                    |
+| `folder-page`                     | Page absent from folder listings and folder discovery.                     |
+| `tag-page`                        | Page absent from tag listings and tag discovery.                           |
 
 In every case, the page's HTML is still emitted and accessible by direct URL.
 
 ## API
 
 - Category: Transformer
-- Function name: `UnlistedPages()`
+- Function name: `ExternalPlugin.UnlistedPages()`
 - Source: [`quartz-community/unlisted-pages`](https://github.com/quartz-community/unlisted-pages)
-- Install: `npx quartz plugin add github:quartz-community/unlisted-pages`
+- Install: `npx quartz plugin add @quartz-community/unlisted-pages` (included in the default configuration)
+- Documentation: [UnlistedPages](https://quartz.jzhao.xyz/plugins/UnlistedPages)
 
 ## License
 
