@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+### Minor Changes
+
+- 9be2119: `unlisted:` also applies to pages rendered from files that have frontmatter, such as Excalidraw drawings stored as Markdown (`.excalidraw.md`), through Quartz 5.1's `virtualPageHtmlPlugins` (quartz-community/bases-page#11).
+
 ## 1.0.1
 
 ### Patch Changes
