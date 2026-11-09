@@ -14,10 +14,19 @@ const rehypeUnlisted = (): Plugin<[], HastRoot> => {
 };
 
 export const UnlistedPages: QuartzTransformerPlugin<undefined> = () => {
-  return {
+  // a variable, not a literal: `virtualPageHtmlPlugins` is newer than the declared types
+  const instance: ReturnType<QuartzTransformerPlugin> & {
+    virtualPageHtmlPlugins(): PluggableList;
+  } = {
     name: "UnlistedPages",
     htmlPlugins(): PluggableList {
       return [rehypeUnlisted()];
     },
+    // Pages rendered from files (Quartz 5.1+): a drawing stored as Markdown has frontmatter, and
+    // `unlisted:` there unlists it like a note (quartz-community/bases-page#11).
+    virtualPageHtmlPlugins(): PluggableList {
+      return [rehypeUnlisted()];
+    },
   };
+  return instance;
 };
