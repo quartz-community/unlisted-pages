@@ -6,6 +6,7 @@ import { createCtx } from "./helpers";
 
 async function runTransformer(
   frontmatter: Record<string, unknown> | undefined,
+  hook: "htmlPlugins" | "virtualPageHtmlPlugins" = "htmlPlugins",
 ): Promise<Record<string, unknown>> {
   const tree: HastRoot = { type: "root", children: [] };
   const vfile = new VFile("");
@@ -13,8 +14,12 @@ async function runTransformer(
     frontmatter !== undefined ? { frontmatter } : {};
 
   const ctx = createCtx();
-  const transformer = UnlistedPages();
-  const plugins = transformer.htmlPlugins?.(ctx) ?? [];
+  // typed locally: @quartz-community/types before 1.3 doesn't declare virtualPageHtmlPlugins
+  const transformer = UnlistedPages() as unknown as Record<
+    string,
+    ((ctx: unknown, content: unknown[]) => unknown[]) | undefined
+  >;
+  const plugins = transformer[hook]?.(ctx, []) ?? [];
 
   for (const pluginEntry of plugins) {
     const pluginFn = Array.isArray(pluginEntry) ? pluginEntry[0] : pluginEntry;
@@ -94,5 +99,17 @@ describe("UnlistedPages transformer", () => {
 
   it("is callable with no arguments (zero-config)", () => {
     expect(() => UnlistedPages()).not.toThrow();
+  });
+});
+
+describe("UnlistedPages on pages rendered from files (quartz-community/bases-page#11)", () => {
+  it("unlists a drawing whose frontmatter says so", async () => {
+    const data = await runTransformer({ title: "Plan", unlisted: true }, "virtualPageHtmlPlugins");
+    expect(data.unlisted).toBe(true);
+  });
+
+  it("leaves a page without frontmatter unlisted alone", async () => {
+    const data = await runTransformer({ title: "Board", tags: [] }, "virtualPageHtmlPlugins");
+    expect(data.unlisted).toBeUndefined();
   });
 });
